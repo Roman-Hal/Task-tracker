@@ -59,16 +59,38 @@ const fetchTasks = async () => {
   }*/
 
   //Add task
-  const addTask = (task) => {
-    const id=Math.floor(Math.random() * 10000) + 1;
-    const newTask = { id, ...task };
-    setTasks([...tasks, newTask])
+  const addTask = async (task) => {
+    const res = await fetch(`http://localhost:5000/tasks/`, {
+      method: 'POST',
+      headers: {
+        'Content-type': 'application/json'
+      },
+      body: JSON.stringify(task)
+    })
+
+    const data = await res.json();
+
+    setTasks([...tasks, data]);
+
+//without server side
+    // const id=Math.floor(Math.random() * 10000) + 1;
+    // const newTask = { id, ...task };
+    // setTasks([...tasks, newTask])
+  }
+
+  //Delete Task from server
+  const deleteTask = async (id) => {
+    await fetch(`http://localhost:5000/tasks/${id}`, {
+      method: 'DELETE'
+    })
+
+    setTasks(tasks.filter((task) => task.id !== id))
   }
 
   // Delete Task
-  const deleteTask = (id) => {
+  /*const deleteTask = (id) => {
     setTasks(tasks.filter((task) => task.id !== id))
-  }
+  }*/
 
   //toggle reminder
   const toggleReminder = (id) => {
