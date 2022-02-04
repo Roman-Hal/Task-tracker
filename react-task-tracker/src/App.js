@@ -5,6 +5,9 @@ import Header from './components/Header';
 import Tasks from './components/Tasks';
 import { useState, useEffect } from 'react';
 import AddTask from './components/AddTask';
+import Footer from './components/Footer';
+import About from './components/About';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
 function App() {
   const [showAddTask, setShowAddTask] = useState(false);
@@ -53,6 +56,14 @@ const fetchTasks = async () => {
   return data;
 };
 
+// Fetch Task
+const fetchTask = async (id) => {
+  const res = await fetch(`http://localhost:5000/tasks/${id}`);
+  const data = await res.json();
+
+  return data;
+};
+
   /*//Add button
   const addButton = () => {
 
@@ -93,20 +104,58 @@ const fetchTasks = async () => {
   }*/
 
   //toggle reminder
-  const toggleReminder = (id) => {
-    setTasks(tasks.map((task) => task.id === id ? { ...task, reminder: !task.reminder } : task))
+  // const toggleReminder = (id) => {
+  //   setTasks(tasks.map((task) => task.id === id ? { ...task, reminder: !task.reminder } : task))
+  // }
+
+  //toggle reminder server side
+  const toggleReminder = async (id) => {
+    const taskToToggle = await fetchTask(id);
+    const updTask = { ...taskToToggle, reminder: !taskToToggle.reminder }
+
+    const res = await fetch(`http://localhost:5000/tasks/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-type': 'application/json'
+      },
+      body: JSON.stringify(updTask)
+    })
+
+    const data = await res.json();
+
+    setTasks(tasks.map((task) => task.id === id ? { ...task, reminder: data.reminder } : task))
+
+    //setTasks(tasks.map((task) => task.id === id ? { ...task, reminder: !task.reminder } : task))
   }
 
 
   //showAddTask && is just fast way to do ternary without else statement
   return (
+    <Router>
     <div className='container'>
+      
       <Header onAdd={() => setShowAddTask (!showAddTask)} showAdd={showAddTask}/>
-      {showAddTask && <AddTask onAdd={addTask} />}
-      {tasks.length > 0 ? <Tasks tasks={tasks} onDelete={deleteTask} onToggle={toggleReminder} /> : 'No tasks set!'}
+      
+      
+      <Routes>
+      <Route path='/' exact element={ (
+        <>
+        {showAddTask && <AddTask onAdd={addTask} />}
+        {tasks.length > 0 ? (<Tasks tasks={tasks} onDelete={deleteTask} onToggle={toggleReminder} />) : ('No tasks set!')}
+        <Footer />
+        </>
+      )} />
+      <Route path='/about' element={<About />} />
+      
+      </Routes>
+      
+      
     </div>
+    </Router>
   )
 }
+/* {showAddTask && <AddTask onAdd={addTask} />}
+      {tasks.length > 0 ? <Tasks tasks={tasks} onDelete={deleteTask} onToggle={toggleReminder} /> : 'No tasks set!'} */
 
 /*function App() {
   return (
